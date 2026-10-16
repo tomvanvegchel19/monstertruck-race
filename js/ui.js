@@ -29,7 +29,11 @@ function drawHud() {
   ctx.fillStyle = "rgba(8,55,92,.9)"; ctx.fillRect(18, 18, 370, 105); ctx.fillRect(width - 250, 18, 232, 82);
   ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.strokeRect(18, 18, 370, 105); ctx.strokeRect(width - 250, 18, 232, 82);
   ctx.fillStyle = "white"; ctx.font = "bold 19px Arial"; ctx.fillText(`LEVEL ${game.levelIndex + 1}: ${currentLevel().name}`, 34, 43);
-  ctx.font = "bold 17px Arial"; ctx.fillText(`LEVENS: ${"❤".repeat(game.lives)}`, 34, 66); ctx.fillText(`SCORE: ${game.score}`, 34, 91);
+  ctx.font = "bold 17px Arial"; ctx.fillText("LEVENS:", 34, 66);
+  for (let index = 0; index < game.lives; index++) {
+    drawHeartShape(122 + index * 30, 61, 22, "#ef2d4f", "#8f1730");
+  }
+  ctx.fillText(`SCORE: ${game.score}`, 34, 91);
   ctx.fillText(`SNELHEID ${game.speedIndex + 1}: ${SPEED_NAMES[game.speedIndex]}`, width - 232, 44);
   ctx.font = "14px Arial"; ctx.fillText("← langzamer  → sneller  F schieten", width - 232, 62);
   ctx.fillStyle = "rgba(255,255,255,.25)"; ctx.fillRect(width - 232, 72, 195, 12);
@@ -47,4 +51,3 @@ function drawOverlay() {
   else if (game.gameOver) ctx.fillText("Druk op Enter om opnieuw te beginnen", innerWidth / 2, innerHeight / 2 + 38);
   ctx.textAlign = "start";
 }
-
