@@ -50,6 +50,43 @@ function drawOverlay() {
   ctx.font = "18px Arial";
   if (game.levelComplete) ctx.fillText("Druk op Enter voor het volgende level", innerWidth / 2, innerHeight / 2 + 38);
   else if (game.gameComplete) ctx.fillText("Druk op Enter om opnieuw te spelen", innerWidth / 2, innerHeight / 2 + 38);
-  else if (game.gameOver) ctx.fillText("Druk op Enter om opnieuw te beginnen", innerWidth / 2, innerHeight / 2 + 38);
+if (game.gameOver) {
+
+    // donkere achtergrond
+    ctx.fillStyle = "rgba(0,0,0,0.75)";
+    ctx.fillRect(0, 0, innerWidth, innerHeight);
+
+    // rode gloed
+    const pulse = Math.sin(performance.now() * 0.01) * 0.15 + 0.85;
+
+    ctx.textAlign = "center";
+
+    ctx.shadowColor = "#ff0000";
+    ctx.shadowBlur = 40 * pulse;
+
+    ctx.fillStyle = "#ff2d2d";
+    ctx.font = "bold 80px Arial";
+    ctx.fillText("GAME OVER", innerWidth / 2, innerHeight / 2 - 60);
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px Arial";
+    ctx.fillText(
+        `Score: ${game.score}`,
+        innerWidth / 2,
+        innerHeight / 2 + 5
+    );
+
+    ctx.fillStyle = "#ffd23f";
+    ctx.font = "bold 24px Arial";
+    ctx.fillText(
+        "Druk op ENTER om opnieuw te spelen",
+        innerWidth / 2,
+        innerHeight / 2 + 65
+    );
+
+    return;
+} ctx.fillText("Druk op Enter om opnieuw te beginnen", innerWidth / 2, innerHeight / 2 + 38);
   ctx.textAlign = "start";
 }
