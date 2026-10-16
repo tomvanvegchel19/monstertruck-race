@@ -58,11 +58,22 @@ function drawEnemy(enemy, index) {
   if (x < -140 || x > window.innerWidth + 140) return;
 
   if (enemy.type === "spikes") {
-    ctx.fillStyle = desert ? "#7f4a29" : "#c8d2dc";
+  ctx.fillStyle = desert ? "#4b2712" : "#5e6670";
     for (let i = 0; i < 4; i++) {
       ctx.beginPath(); ctx.moveTo(x + i * 21, y); ctx.lineTo(x + i * 21 + 10, y - 42);
       ctx.lineTo(x + (i + 1) * 21, y); ctx.closePath(); ctx.fill();
     }
+    ctx.strokeStyle = "#222";
+ctx.lineWidth = 2;
+
+for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x + i * 21, y);
+    ctx.lineTo(x + i * 21 + 10, y - 42);
+    ctx.lineTo(x + (i + 1) * 21, y);
+    ctx.closePath();
+    ctx.stroke();
+}
     return;
   }
 
