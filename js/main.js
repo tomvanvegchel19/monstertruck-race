@@ -63,6 +63,29 @@ function getGroundY() {
     return window.innerHeight - groundHeight;
 }
 
+function getTerrainY(worldX) {
+    const baseY = getGroundY();
+    const broadHill = Math.sin(worldX / 520) * 48;
+    const mediumHill = Math.sin(worldX / 235 + 1.1) * 23;
+    const smallBump = Math.sin(worldX / 110 + 0.4) * 8;
+    return baseY - broadHill - mediumHill - smallBump;
+}
+
+function screenToWorldX(screenX) {
+    return worldOffset + screenX - truck.x - 700;
+}
+
+function getTruckTerrainY() {
+    return getTerrainY(screenToWorldX(truck.x));
+}
+
+function getTerrainSlope(worldX) {
+    const sample = 7;
+    const left = getTerrainY(worldX - sample);
+    const right = getTerrainY(worldX + sample);
+    return Math.atan2(right - left, sample * 2);
+}
+
 function resizeCanvas() {
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(window.innerWidth * ratio);
@@ -72,7 +95,7 @@ function resizeCanvas() {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     if (truck.onGround) {
-        truck.y = getGroundY() - truck.height + 18;
+        truck.y = getTruckTerrainY() - truck.height + 18;
     }
 }
 
@@ -93,7 +116,7 @@ function resetRun(fullReset = false) {
     worldOffset = distance;
     truck.velocityY = 0;
     truck.onGround = true;
-    truck.y = getGroundY() - truck.height + 18;
+    truck.y = getTruckTerrainY() - truck.height + 18;
     invulnerableTime = 1.8;
     projectiles.length = 0;
 }
@@ -188,7 +211,7 @@ function update(delta) {
     truck.velocityY += truck.gravity * delta;
     truck.y += truck.velocityY * delta;
 
-    const floorY = getGroundY() - truck.height + 18;
+    const floorY = getTruckTerrainY() - truck.height + 18;
     if (truck.y >= floorY) {
         truck.y = floorY;
         truck.velocityY = 0;
@@ -212,7 +235,7 @@ function update(delta) {
     if (truck.onGround && Math.random() < 0.38) {
         dustParticles.push({
             x: truck.x + 28,
-            y: getGroundY() - 10,
+            y: getTruckTerrainY() - 10,
             vx: -80 - Math.random() * 110,
             vy: -25 - Math.random() * 55,
             size: 7 + Math.random() * 13,
@@ -246,7 +269,7 @@ function update(delta) {
         const screenX = enemy.x - worldOffset + truck.x + 700;
         const enemyBox = {
             x: screenX,
-            y: getGroundY() - enemy.height,
+            y: getTerrainY(enemy.x) - enemy.height,
             width: enemy.width,
             height: enemy.height
         };
@@ -574,25 +597,52 @@ function drawBackground() {
         drawOreBlock(x + 382, groundY - 62, "#ffd43b");
     }
 
-    ctx.fillStyle = "#62bf48";
-    ctx.fillRect(0, groundY - 22, w, 38);
-    ctx.fillStyle = "#8b552d";
-    ctx.fillRect(0, groundY + 16, w, h - groundY - 16);
+    const terrainStep = 8;
 
+    ctx.fillStyle = "#8b552d";
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let x = 0; x <= w + terrainStep; x += terrainStep) {
+        ctx.lineTo(x, getTerrainY(screenToWorldX(x)) + 12);
+    }
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = "#61c94c";
+    ctx.lineWidth = 28;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    for (let x = -terrainStep; x <= w + terrainStep; x += terrainStep) {
+        const y = getTerrainY(screenToWorldX(x));
+        if (x === -terrainStep) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(83,45,21,0.42)";
+    ctx.lineWidth = 2;
     const block = 48;
     const blockShift = worldOffset % block;
-    for (let row = 0, y = groundY + 16; y < h; row++, y += block) {
-        for (let col = -1, x = -blockShift - block; x < w + block; col++, x += block) {
-            ctx.fillStyle = (row + col) % 2 === 0 ? "#965d32" : "#75451f";
-            ctx.fillRect(x, y, block, block);
-            ctx.strokeStyle = "rgba(61,31,12,0.35)";
-            ctx.strokeRect(x, y, block, block);
-        }
+    for (let x = -blockShift; x < w + block; x += block) {
+        const topY = getTerrainY(screenToWorldX(x)) + 14;
+        ctx.beginPath();
+        ctx.moveTo(x, topY);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+    }
+    for (let y = getGroundY() + 20; y < h; y += block) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
     }
 
     const foregroundShift = (worldOffset * 0.95) % 330;
     for (let x = -330 - foregroundShift; x < w + 330; x += 330) {
-        drawForegroundBush(x + 35, groundY + 4, 0.7);
+        const bushY = getTerrainY(screenToWorldX(x + 35)) + 4;
+        drawForegroundBush(x + 35, bushY, 0.7);
     }
 
     drawSpeedLines(w, h);
@@ -601,7 +651,7 @@ function drawBackground() {
 function drawEnemy(enemy, enemyIndex) {
     if (destroyedEnemies.has(enemyIndex)) return;
     const x = enemy.x - worldOffset + truck.x + 700;
-    const groundY = getGroundY();
+    const groundY = getTerrainY(enemy.x);
     if (x < -150 || x > window.innerWidth + 150) return;
 
     if (enemy.type === "spikes") {
@@ -734,19 +784,20 @@ function drawCheckpointMarkers() {
     checkpoints.slice(1).forEach((point, index) => {
         const x = point - worldOffset + truck.x + 700;
         if (x < -100 || x > window.innerWidth + 100) return;
+        const markerGroundY = getTerrainY(point);
         ctx.fillStyle = "#f6f6f6";
-        ctx.fillRect(x, groundY - 150, 10, 150);
+        ctx.fillRect(x, markerGroundY - 150, 10, 150);
         ctx.fillStyle = index + 1 <= checkpoint ? "#48d05d" : "#ffca28";
-        ctx.fillRect(x + 10, groundY - 145, 78, 45);
+        ctx.fillRect(x + 10, markerGroundY - 145, 78, 45);
         ctx.fillStyle = "#173d5d";
         ctx.font = "bold 17px Arial";
-        ctx.fillText(`CP ${index + 1}`, x + 23, groundY - 116);
+        ctx.fillText(`CP ${index + 1}`, x + 23, markerGroundY - 116);
     });
 }
 
 function drawFinish() {
     const x = levelLength - worldOffset + truck.x + 700;
-    const groundY = getGroundY();
+    const groundY = getTerrainY(levelLength);
     if (x < -150 || x > window.innerWidth + 150) return;
 
     ctx.fillStyle = "white";
@@ -765,7 +816,15 @@ function drawTruck() {
     if (flashing) return;
 
     ctx.save();
-    if (gameStarted && truck.onGround) ctx.translate(0, Math.sin(worldOffset * 0.05) * 2);
+    if (gameStarted && truck.onGround) {
+        const centerX = truck.x + truck.width / 2;
+        const centerY = truck.y + truck.height / 2;
+        const slope = getTerrainSlope(screenToWorldX(truck.x));
+        ctx.translate(centerX, centerY);
+        ctx.rotate(slope * 0.72);
+        ctx.translate(-centerX, -centerY);
+        ctx.translate(0, Math.sin(worldOffset * 0.05) * 2);
+    }
 
     if (truckImage.complete && truckImage.naturalWidth > 0) {
         ctx.drawImage(truckImage, truck.x, truck.y, truck.width, truck.height);
