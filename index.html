@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monster Truck Race</title>
-    <link rel="stylesheet" href="css/game.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monster Truck Race</title>
+  <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
-    <div id="menu">
-        <h1>🚚 Monster Truck Race</h1>
-        <p>Het eerste racespel van Tom</p>
-        <button id="startButton">Start spel</button>
-    </div>
+  <div id="menu">
+    <h1>🚚 Monster Truck Race</h1>
+    <p>Het eerste racespel van Tom</p>
+    <button id="startButton">Start spel</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
 
-    <canvas id="gameCanvas"></canvas>
-
-    <script src="js/main.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/terrain.js"></script>
+  <script src="js/world/level1.js"></script>
+  <script src="js/world/level2.js"></script>
+  <script src="js/world/level3.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
