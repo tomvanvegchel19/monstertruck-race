@@ -21,6 +21,7 @@ function startCurrentLevel() {
 function startGame() {
   audio.init();
   audio.startEngine();
+  music.play(0);
   audio.tone(440, 0.12, { type: "square", volume: 0.1 });
   game.started = true; menu.hidden = true; game.levelIndex = 0; game.score = 0; game.lives = STARTING_LIVES; game.gameComplete = false; startCurrentLevel();
 }
@@ -113,7 +114,9 @@ function drawCurrentWorld() {
 function gameLoop(time) {
   const delta = Math.min((time - game.lastTime) / 1000 || 0, 0.05); game.lastTime = time;
   updateGame(delta);
-  audio.updateEngine(game.speedIndex, game.started && !game.gameOver && !game.levelComplete && !game.gameComplete);
+  const audioActive = game.started && !game.gameOver && !game.levelComplete && !game.gameComplete;
+  audio.updateEngine(game.speedIndex, audioActive);
+  music.update(game.levelIndex, audioActive);
   drawCurrentWorld(); drawCollectibleHearts(); drawMarkers(); drawFinish(); currentLevel().enemies.forEach(drawEnemy);
   drawEffects(); drawProjectiles(); drawTruck(); drawHud(); drawOverlay(); requestAnimationFrame(gameLoop);
 }
