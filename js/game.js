@@ -46,7 +46,7 @@ function loseLife() {
   game.lives--;
   audio.collision();
   if (game.lives <= 0) { game.gameOver = true; audio.gameOver(); showMessage("GAME OVER", 99); }
-  else { showMessage("BOTSING! TERUG NAAR CHECKPOINT", 1.4); resetLevelPosition(); }
+  else { showMessage("BOTSING!", 1.4); resetLevelPosition(); }
 }
 function continueGame() {
   if (game.levelComplete) { game.levelIndex++; game.lives = STARTING_LIVES; startCurrentLevel(); return; }
