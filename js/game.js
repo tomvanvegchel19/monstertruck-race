@@ -15,11 +15,11 @@ function resetLevelPosition() {
   game.invulnerable = 1.7; game.projectiles = []; game.dust = []; game.explosions = [];
 }
 function startCurrentLevel() {
-  game.checkpoint = 0; game.levelComplete = false; game.gameOver = false; game.destroyedEnemies.clear();
+  game.checkpoint = 0; game.levelComplete = false; game.gameOver = false; game.destroyedEnemies.clear(); game.collectedHearts.clear(); game.heartBursts = [];
   resetLevelPosition(); showMessage(`LEVEL ${game.levelIndex + 1}: ${currentLevel().name}`, 1.8);
 }
 function startGame() {
-  game.started = true; menu.hidden = true; game.levelIndex = 0; game.score = 0; game.lives = 3; game.gameComplete = false; startCurrentLevel();
+  game.started = true; menu.hidden = true; game.levelIndex = 0; game.score = 0; game.lives = STARTING_LIVES; game.gameComplete = false; startCurrentLevel();
 }
 function jump() {
   if (game.started && !game.gameOver && !game.levelComplete && !game.gameComplete && truck.onGround) {
@@ -41,8 +41,8 @@ function loseLife() {
   else { showMessage("BOTSING! TERUG NAAR CHECKPOINT", 1.4); resetLevelPosition(); }
 }
 function continueGame() {
-  if (game.levelComplete) { game.levelIndex++; game.lives = 3; startCurrentLevel(); return; }
-  if (game.gameOver || game.gameComplete) { game.levelIndex = 0; game.score = 0; game.lives = 3; game.gameComplete = false; startCurrentLevel(); }
+  if (game.levelComplete) { game.levelIndex++; game.lives = STARTING_LIVES; startCurrentLevel(); return; }
+  if (game.gameOver || game.gameComplete) { game.levelIndex = 0; game.score = 0; game.lives = STARTING_LIVES; game.gameComplete = false; startCurrentLevel(); }
 }
 
 function updateGame(delta) {
@@ -60,8 +60,23 @@ function updateGame(delta) {
   if (truck.onGround && Math.random() < 0.34) game.dust.push({ x: truck.x + 30, y: truckGroundY() - 8, vx: -100 - Math.random() * 90, vy: -25 - Math.random() * 45, radius: 7 + Math.random() * 10, life: 0.6 });
   game.dust.forEach(p => { p.x += p.vx * delta; p.y += p.vy * delta; p.vy += 70 * delta; p.life -= delta; }); game.dust = game.dust.filter(p => p.life > 0);
   game.explosions.forEach(e => { e.radius += 120 * delta; e.life -= delta; }); game.explosions = game.explosions.filter(e => e.life > 0);
+  game.heartBursts.forEach(burst => { burst.y -= 45 * delta; burst.life -= delta; }); game.heartBursts = game.heartBursts.filter(burst => burst.life > 0);
 
   const truckBox = { x: truck.x + 38, y: truck.y + 40, w: truck.width - 76, h: truck.height - 55 };
+  (currentLevel().hearts || []).forEach((heart, index) => {
+    if (game.collectedHearts.has(index)) return;
+    const heartX = heart.x - game.distance + truck.x + 700;
+    const heartY = terrainY(heart.x) - heart.height;
+    const heartBox = { x: heartX - 26, y: heartY - 25, w: 52, h: 50 };
+    if (rectanglesOverlap(truckBox, heartBox)) {
+      game.collectedHearts.add(index);
+      game.lives = Math.min(MAX_LIVES, game.lives + 1);
+      game.score += 300;
+      game.heartBursts.push({ x: heartX, y: heartY, life: 0.9 });
+      showMessage(game.lives < MAX_LIVES ? "EXTRA LEVEN!" : `MAXIMAAL ${MAX_LIVES} LEVENS!`, 0.9);
+    }
+  });
+
   currentLevel().enemies.forEach((enemy, index) => {
     if (game.destroyedEnemies.has(index)) return;
     const x = enemy.x - game.distance + truck.x + 700;
@@ -89,7 +104,7 @@ function drawCurrentWorld() {
 
 function gameLoop(time) {
   const delta = Math.min((time - game.lastTime) / 1000 || 0, 0.05); game.lastTime = time;
-  updateGame(delta); drawCurrentWorld(); drawMarkers(); drawFinish(); currentLevel().enemies.forEach(drawEnemy);
+  updateGame(delta); drawCurrentWorld(); drawCollectibleHearts(); drawMarkers(); drawFinish(); currentLevel().enemies.forEach(drawEnemy);
   drawEffects(); drawProjectiles(); drawTruck(); drawHud(); drawOverlay(); requestAnimationFrame(gameLoop);
 }
 
@@ -105,4 +120,3 @@ window.addEventListener("keydown", event => {
 canvas.addEventListener("pointerdown", jump);
 resizeCanvas();
 requestAnimationFrame(gameLoop);
-
