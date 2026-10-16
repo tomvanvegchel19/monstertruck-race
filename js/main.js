@@ -19,10 +19,12 @@ let checkpoint = 0;
 let invulnerableTime = 0;
 let message = "";
 let messageTime = 0;
-let speedLevel = 2;
+let speedLevel = 1;
 let shotCooldown = 0;
 const projectiles = [];
 const destroyedEnemies = new Set();
+const explosions = [];
+const dustParticles = [];
 
 const speedLevels = [
     { name: "RUSTIG", speed: 230 },
@@ -32,32 +34,30 @@ const speedLevels = [
     { name: "SUPERSNEL", speed: 590 }
 ];
 
-const levelLength = 7000;
+const levelLength = 7600;
 const groundHeight = 108;
 
 const truck = {
     x: 105,
     y: 0,
-    width: 300,
-    height: 185,
+    width: 230,
+    height: 142,
     velocityY: 0,
     speed: speedLevels[speedLevel - 1].speed,
-    jumpPower: 690,
-    gravity: 1850,
+    jumpPower: 930,
+    gravity: 1700,
     onGround: true
 };
 
 const enemies = [
-    { x: 1100, type: "crawler", width: 74, height: 58 },
-    { x: 1900, type: "spikes", width: 78, height: 42 },
-    { x: 2850, type: "crawler", width: 74, height: 58 },
-    { x: 3650, type: "spikes", width: 92, height: 42 },
-    { x: 4550, type: "crawler", width: 78, height: 62 },
-    { x: 5400, type: "spikes", width: 100, height: 42 },
-    { x: 6250, type: "crawler", width: 82, height: 66 }
+    { x: 1350, type: "crawler", width: 70, height: 55 },
+    { x: 2450, type: "spikes", width: 72, height: 38 },
+    { x: 3650, type: "crawler", width: 72, height: 57 },
+    { x: 4850, type: "spikes", width: 80, height: 40 },
+    { x: 6100, type: "crawler", width: 76, height: 60 }
 ];
 
-const checkpoints = [0, 2400, 4800];
+const checkpoints = [0, 2700, 5200];
 
 function getGroundY() {
     return window.innerHeight - groundHeight;
@@ -82,9 +82,11 @@ function resetRun(fullReset = false) {
         score = 0;
         checkpoint = 0;
         gameOver = false;
-        speedLevel = 2;
+        speedLevel = 1;
         truck.speed = speedLevels[speedLevel - 1].speed;
         destroyedEnemies.clear();
+        explosions.length = 0;
+        dustParticles.length = 0;
     }
 
     distance = checkpoints[checkpoint];
@@ -207,6 +209,33 @@ function update(delta) {
         }
     }
 
+    if (truck.onGround && Math.random() < 0.38) {
+        dustParticles.push({
+            x: truck.x + 28,
+            y: getGroundY() - 10,
+            vx: -80 - Math.random() * 110,
+            vy: -25 - Math.random() * 55,
+            size: 7 + Math.random() * 13,
+            life: 0.65
+        });
+    }
+
+    for (let i = dustParticles.length - 1; i >= 0; i--) {
+        const dust = dustParticles[i];
+        dust.x += dust.vx * delta;
+        dust.y += dust.vy * delta;
+        dust.vy += 75 * delta;
+        dust.life -= delta;
+        if (dust.life <= 0) dustParticles.splice(i, 1);
+    }
+
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const explosion = explosions[i];
+        explosion.life -= delta;
+        explosion.radius += 115 * delta;
+        if (explosion.life <= 0) explosions.splice(i, 1);
+    }
+
     updateCheckpoint();
 
     const truckBox = getTruckHitbox();
@@ -226,8 +255,20 @@ function update(delta) {
 
         if (enemy.type === "crawler") {
             for (let projectileIndex = projectiles.length - 1; projectileIndex >= 0; projectileIndex--) {
-                if (rectsOverlap(projectiles[projectileIndex], enemyBox)) {
+                const projectileHitbox = {
+                    x: projectiles[projectileIndex].x - 18,
+                    y: projectiles[projectileIndex].y - 16,
+                    width: projectiles[projectileIndex].width + 36,
+                    height: projectiles[projectileIndex].height + 32
+                };
+                if (rectsOverlap(projectileHitbox, enemyBox)) {
                     destroyedEnemies.add(enemyIndex);
+                    explosions.push({
+                        x: enemyBox.x + enemyBox.width / 2,
+                        y: enemyBox.y + enemyBox.height / 2,
+                        radius: 12,
+                        life: 0.55
+                    });
                     projectiles.splice(projectileIndex, 1);
                     score += 250;
                     showMessage("RAAK! +250", 0.55);
@@ -385,6 +426,70 @@ function drawEnemy(enemy, enemyIndex) {
     ctx.fill();
 }
 
+function drawWarnings() {
+    const groundY = getGroundY();
+
+    enemies.forEach((enemy, enemyIndex) => {
+        if (destroyedEnemies.has(enemyIndex)) return;
+        const screenX = enemy.x - worldOffset + truck.x + 700;
+        if (screenX > window.innerWidth && screenX < window.innerWidth + 650) {
+            const pulse = 1 + Math.sin(performance.now() * 0.012) * 0.12;
+            ctx.save();
+            ctx.translate(window.innerWidth - 58, groundY - 88);
+            ctx.scale(pulse, pulse);
+            ctx.fillStyle = "#ffcf33";
+            ctx.strokeStyle = "#a62918";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, -30);
+            ctx.lineTo(31, 28);
+            ctx.lineTo(-31, 28);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = "#572012";
+            ctx.font = "bold 34px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("!", 0, 18);
+            ctx.restore();
+        }
+    });
+    ctx.textAlign = "start";
+}
+
+function drawDust() {
+    for (const dust of dustParticles) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, dust.life / 0.65) * 0.55;
+        ctx.fillStyle = "#d8c295";
+        ctx.beginPath();
+        ctx.arc(dust.x, dust.y, dust.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+function drawExplosions() {
+    for (const explosion of explosions) {
+        const alpha = Math.max(0, explosion.life / 0.55);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "#ff3b1f";
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffb000";
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius * 0.68, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff36b";
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius * 0.32, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
 function drawProjectiles() {
     for (const projectile of projectiles) {
         const gradient = ctx.createLinearGradient(
@@ -527,7 +632,10 @@ function gameLoop(time) {
     drawCheckpointMarkers();
     drawFinish();
     enemies.forEach(drawEnemy);
+    drawWarnings();
+    drawDust();
     drawProjectiles();
+    drawExplosions();
     drawTruck();
     drawHud();
     drawOverlay();
