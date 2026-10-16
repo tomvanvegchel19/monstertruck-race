@@ -40,8 +40,8 @@ const groundHeight = 108;
 const truck = {
     x: 105,
     y: 0,
-    width: 230,
-    height: 142,
+    width: 276,
+    height: 170,
     velocityY: 0,
     speed: speedLevels[speedLevel - 1].speed,
     jumpPower: 930,
@@ -329,35 +329,235 @@ function drawTree(x, groundY, scale) {
     ctx.restore();
 }
 
+function drawMistLayer(width, groundY) {
+    const shift = (worldOffset * 0.09) % 420;
+    ctx.save();
+    ctx.globalAlpha = 0.20;
+    ctx.fillStyle = "#ffffff";
+    for (let x = -450 - shift; x < width + 450; x += 420) {
+        ctx.beginPath();
+        ctx.ellipse(x + 120, groundY - 210, 240, 44, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + 300, groundY - 188, 210, 36, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function drawRainbow(x, y, scale = 1) {
+    const colors = ["#ff4b4b", "#ff9d2e", "#ffe43b", "#52c95b", "#3da5ff", "#8755d7"];
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    colors.forEach((color, index) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(0, 0, 94 - index * 10, Math.PI, 0);
+        ctx.stroke();
+    });
+    ctx.restore();
+}
+
+function drawHotAirBalloon(x, y, scale = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#ff6b35";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 34, 46, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffd34e";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 13, 45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#6f4424";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-15, 38); ctx.lineTo(-10, 62);
+    ctx.moveTo(15, 38); ctx.lineTo(10, 62);
+    ctx.stroke();
+    ctx.fillStyle = "#8a542e";
+    ctx.fillRect(-13, 60, 26, 18);
+    ctx.restore();
+}
+
+function drawBird(x, y, scale = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = "rgba(28,67,92,0.72)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(-11, 0, 12, Math.PI * 1.05, Math.PI * 1.9);
+    ctx.arc(11, 0, 12, Math.PI * 1.1, Math.PI * 1.95);
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawFloatingIsland(x, y, scale = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#59bd48";
+    ctx.fillRect(-72, -12, 144, 28);
+    ctx.fillStyle = "#8b572d";
+    ctx.beginPath();
+    ctx.moveTo(-65, 16);
+    ctx.lineTo(0, 92);
+    ctx.lineTo(65, 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#6f421f";
+    ctx.beginPath();
+    ctx.moveTo(-34, 16); ctx.lineTo(0, 72); ctx.lineTo(34, 16); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawWaterfall(x, y, height, width = 38) {
+    const flow = (performance.now() * 0.08) % 24;
+    const water = ctx.createLinearGradient(x, y, x + width, y);
+    water.addColorStop(0, "#238cca");
+    water.addColorStop(0.5, "#81e5ff");
+    water.addColorStop(1, "#2187c0");
+    ctx.fillStyle = water;
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeStyle = "rgba(255,255,255,0.65)";
+    ctx.lineWidth = 3;
+    for (let line = 7; line < width; line += 12) {
+        ctx.beginPath();
+        ctx.moveTo(x + line, y - flow);
+        ctx.lineTo(x + line, y + height);
+        ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(225,250,255,0.9)";
+    for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.arc(x + 5 + i * (width / 5), y + height, 8, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawCave(x, groundY, scale = 1) {
+    ctx.save();
+    ctx.translate(x, groundY);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#52616b";
+    ctx.fillRect(-65, -86, 130, 86);
+    ctx.fillStyle = "#202b32";
+    ctx.beginPath();
+    ctx.arc(0, -38, 42, Math.PI, 0);
+    ctx.fillRect(-42, -38, 84, 38);
+    ctx.fill();
+    ctx.fillStyle = "#707f87";
+    for (let bx = -58; bx < 58; bx += 29) {
+        ctx.fillRect(bx, -80, 24, 18);
+    }
+    ctx.restore();
+}
+
+function drawOreBlock(x, y, color) {
+    ctx.fillStyle = "#59636a";
+    ctx.fillRect(x, y, 42, 42);
+    ctx.strokeStyle = "#394248";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, 42, 42);
+    ctx.fillStyle = color;
+    ctx.fillRect(x + 7, y + 8, 10, 9);
+    ctx.fillRect(x + 24, y + 6, 9, 12);
+    ctx.fillRect(x + 18, y + 25, 13, 10);
+    ctx.fillRect(x + 5, y + 29, 8, 7);
+}
+
+function drawForegroundBush(x, groundY, scale = 1) {
+    ctx.save();
+    ctx.translate(x, groundY);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#187b36";
+    ctx.beginPath();
+    ctx.arc(0, 0, 33, Math.PI, 0);
+    ctx.arc(43, -8, 40, Math.PI, 0);
+    ctx.arc(92, 0, 34, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = "#2eaa49";
+    ctx.beginPath();
+    ctx.arc(39, -6, 22, Math.PI, 0);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawSpeedLines(width, height) {
+    if (speedLevel < 4 || !gameStarted) return;
+    ctx.save();
+    ctx.globalAlpha = speedLevel === 5 ? 0.42 : 0.25;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = speedLevel === 5 ? 4 : 3;
+    const timeShift = (performance.now() * 0.7) % 240;
+    for (let y = 135; y < height - 150; y += 74) {
+        const x = width - ((y * 5 + timeShift) % (width + 300));
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - 120 - speedLevel * 16, y);
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
 function drawBackground() {
     const w = window.innerWidth;
     const h = window.innerHeight;
     const groundY = getGroundY();
 
     const sky = ctx.createLinearGradient(0, 0, 0, groundY);
-    sky.addColorStop(0, "#3db7f1");
-    sky.addColorStop(1, "#dff8ff");
+    sky.addColorStop(0, "#31afea");
+    sky.addColorStop(0.6, "#92ddfa");
+    sky.addColorStop(1, "#dcf7ff");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
 
+    ctx.fillStyle = "rgba(255,215,70,0.28)";
+    ctx.beginPath(); ctx.arc(w - 112, 98, 67, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#ffd84d";
-    ctx.beginPath();
-    ctx.arc(w - 105, 92, 46, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(w - 112, 98, 46, 0, Math.PI * 2); ctx.fill();
 
-    const mountainShift = (worldOffset * 0.05) % 530;
-    for (let x = -530 - mountainShift; x < w + 530; x += 530) {
-        ctx.fillStyle = "#4488b9";
+    const farShift = (worldOffset * 0.035) % 620;
+    for (let x = -620 - farShift; x < w + 620; x += 620) {
+        ctx.fillStyle = "#5b92bd";
         ctx.beginPath();
-        ctx.moveTo(x, groundY - 40);
-        ctx.lineTo(x + 210, groundY - 325);
-        ctx.lineTo(x + 430, groundY - 40);
+        ctx.moveTo(x, groundY - 65);
+        ctx.lineTo(x + 220, groundY - 385);
+        ctx.lineTo(x + 455, groundY - 65);
+        ctx.fill();
+        ctx.fillStyle = "#7db8d6";
+        ctx.beginPath();
+        ctx.moveTo(x + 220, groundY - 385);
+        ctx.lineTo(x + 276, groundY - 304);
+        ctx.lineTo(x + 235, groundY - 322);
+        ctx.lineTo(x + 202, groundY - 292);
+        ctx.lineTo(x + 164, groundY - 309);
+        ctx.closePath();
         ctx.fill();
     }
 
-    drawCloud(120 - (worldOffset * 0.03) % (w + 300), 115, 1.05, 0.9);
-    drawCloud(620 - (worldOffset * 0.025) % (w + 500), 180, 0.8, 0.8);
-    drawCloud(980 - (worldOffset * 0.04) % (w + 500), 90, 1.1, 0.9);
+    drawRainbow(420 - (worldOffset * 0.045) % (w + 700), groundY - 280, 1.05);
+    drawHotAirBalloon(w - ((worldOffset * 0.025 + 250) % (w + 400)), 165, 0.9);
+
+    for (let i = 0; i < 7; i++) {
+        const birdX = w - ((worldOffset * 0.075 + i * 190) % (w + 300));
+        drawBird(birdX, 120 + (i % 3) * 47, 0.7 + (i % 2) * 0.25);
+    }
+
+    drawCloud(120 - (worldOffset * 0.024) % (w + 320), 112, 1.05, 0.9);
+    drawCloud(620 - (worldOffset * 0.019) % (w + 520), 190, 0.82, 0.78);
+    drawCloud(1020 - (worldOffset * 0.032) % (w + 520), 92, 1.15, 0.9);
+
+    drawMistLayer(w, groundY);
+
+    const islandShift = (worldOffset * 0.09) % 1250;
+    for (let x = -900 - islandShift; x < w + 1250; x += 1250) {
+        drawFloatingIsland(x + 720, groundY - 350, 0.85);
+        drawWaterfall(x + 703, groundY - 334, 145, 28);
+    }
 
     const hillShift = (worldOffset * 0.14) % 760;
     for (let x = -400 - hillShift; x < w + 760; x += 760) {
@@ -365,10 +565,13 @@ function drawBackground() {
         drawCheckerHill(x + 590, groundY + 8, 180, 125);
     }
 
-    const treeShift = (worldOffset * 0.32) % 680;
-    for (let x = -180 - treeShift; x < w + 680; x += 680) {
-        drawTree(x + 200, groundY - 8, 0.8);
-        drawTree(x + 470, groundY - 8, 0.65);
+    const treeShift = (worldOffset * 0.31) % 760;
+    for (let x = -240 - treeShift; x < w + 760; x += 760) {
+        drawTree(x + 170, groundY - 8, 1.15);
+        drawTree(x + 455, groundY - 8, 0.72);
+        drawCave(x + 625, groundY - 6, 0.78);
+        drawOreBlock(x + 330, groundY - 62, "#39e6ef");
+        drawOreBlock(x + 382, groundY - 62, "#ffd43b");
     }
 
     ctx.fillStyle = "#62bf48";
@@ -386,6 +589,13 @@ function drawBackground() {
             ctx.strokeRect(x, y, block, block);
         }
     }
+
+    const foregroundShift = (worldOffset * 0.95) % 330;
+    for (let x = -330 - foregroundShift; x < w + 330; x += 330) {
+        drawForegroundBush(x + 35, groundY + 4, 0.7);
+    }
+
+    drawSpeedLines(w, h);
 }
 
 function drawEnemy(enemy, enemyIndex) {
