@@ -1,5 +1,51 @@
 "use strict";
 
+
+function drawHeartShape(x, y, size, fillColor = "#ef2d4f", strokeColor = "#8f1730") {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 32, size / 32);
+  ctx.fillStyle = fillColor;
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 12);
+  ctx.bezierCurveTo(-30, -7, -16, -32, 0, -15);
+  ctx.bezierCurveTo(16, -32, 30, -7, 0, 12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,.72)";
+  ctx.beginPath();
+  ctx.ellipse(-9, -12, 5, 3, -0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCollectibleHearts() {
+  const time = performance.now();
+  (currentLevel().hearts || []).forEach((heart, index) => {
+    if (game.collectedHearts.has(index)) return;
+    const x = heart.x - game.distance + truck.x + 700;
+    if (x < -80 || x > window.innerWidth + 80) return;
+    const baseY = terrainY(heart.x) - heart.height;
+    const y = baseY + Math.sin(time * 0.006 + index * 1.7) * 10;
+    const pulse = 1 + Math.sin(time * 0.009 + index) * 0.08;
+    ctx.save();
+    ctx.shadowColor = "rgba(255,45,80,.85)";
+    ctx.shadowBlur = 18;
+    drawHeartShape(x, y, 39 * pulse);
+    ctx.restore();
+  });
+
+  for (const burst of game.heartBursts) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, burst.life / 0.9);
+    drawHeartShape(burst.x, burst.y, 36 + (1 - burst.life / 0.9) * 28, "#ff4a68", "#9b1731");
+    ctx.restore();
+  }
+}
+
 function rectanglesOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
