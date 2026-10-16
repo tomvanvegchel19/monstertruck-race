@@ -28,7 +28,7 @@ const game = {
   speedIndex: 0,
   distance: 0,
   score: 0,
-  lives: 3,
+  lives: STARTING_LIVES,
   checkpoint: 0,
   lastTime: 0,
   invulnerable: 0,
@@ -38,7 +38,9 @@ const game = {
   projectiles: [],
   dust: [],
   explosions: [],
-  destroyedEnemies: new Set()
+  destroyedEnemies: new Set(),
+  collectedHearts: new Set(),
+  heartBursts: []
 };
 
 function currentLevel() {
