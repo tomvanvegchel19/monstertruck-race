@@ -38,10 +38,122 @@ function drawTruck() {
   ctx.restore();
 }
 
+function drawRocketSmoke(projectile, time) {
+  const trailLength = 6;
+
+  for (let index = 0; index < trailLength; index++) {
+    const wave = Math.sin(time * 0.012 + index * 1.35) * 5;
+    const smokeX = projectile.x - 10 - index * 13;
+    const smokeY = projectile.y + projectile.h / 2 + wave;
+    const radius = 8 + index * 2.3;
+    const alpha = Math.max(0.08, 0.52 - index * 0.07);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = index % 2 === 0 ? "#f5f7fa" : "#cfd8df";
+    ctx.beginPath();
+    ctx.arc(smokeX, smokeY, radius, 0, Math.PI * 2);
+    ctx.arc(smokeX - radius * 0.65, smokeY + 3, radius * 0.72, 0, Math.PI * 2);
+    ctx.arc(smokeX + radius * 0.55, smokeY - 2, radius * 0.66, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawCartoonRocket(projectile, time) {
+  const x = projectile.x;
+  const y = projectile.y + projectile.h / 2;
+  const bob = Math.sin(time * 0.016 + x * 0.02) * 1.8;
+  const rocketLength = 46;
+  const rocketHeight = 20;
+
+  ctx.save();
+  ctx.translate(x, y + bob);
+
+  // Vlam achter de raket.
+  const flamePulse = 7 + Math.sin(time * 0.035) * 3;
+  ctx.fillStyle = "#ff3b1f";
+  ctx.beginPath();
+  ctx.moveTo(2, 0);
+  ctx.lineTo(-17 - flamePulse, -8);
+  ctx.lineTo(-11 - flamePulse * 0.45, 0);
+  ctx.lineTo(-17 - flamePulse, 8);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#ffd33d";
+  ctx.beginPath();
+  ctx.moveTo(3, 0);
+  ctx.lineTo(-11 - flamePulse * 0.55, -4);
+  ctx.lineTo(-7 - flamePulse * 0.3, 0);
+  ctx.lineTo(-11 - flamePulse * 0.55, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Rode staartvinnen.
+  ctx.fillStyle = "#e3343f";
+  ctx.strokeStyle = "#7e1c28";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(8, -7);
+  ctx.lineTo(-2, -17);
+  ctx.lineTo(19, -9);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(8, 7);
+  ctx.lineTo(-2, 17);
+  ctx.lineTo(19, 9);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Hoofdlichaam.
+  const bodyGradient = ctx.createLinearGradient(0, -rocketHeight / 2, 0, rocketHeight / 2);
+  bodyGradient.addColorStop(0, "#fff8e8");
+  bodyGradient.addColorStop(0.52, "#e9eef2");
+  bodyGradient.addColorStop(1, "#aebbc5");
+  ctx.fillStyle = bodyGradient;
+  ctx.strokeStyle = "#34495a";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(0, -rocketHeight / 2, rocketLength - 13, rocketHeight, 9);
+  ctx.fill();
+  ctx.stroke();
+
+  // Punt van de raket.
+  ctx.fillStyle = "#ef3948";
+  ctx.beginPath();
+  ctx.moveTo(rocketLength - 14, -rocketHeight / 2);
+  ctx.quadraticCurveTo(rocketLength + 8, 0, rocketLength - 14, rocketHeight / 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Cartoonraampje.
+  ctx.fillStyle = "#46c8f0";
+  ctx.strokeStyle = "#24556b";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(18, 0, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  ctx.beginPath();
+  ctx.arc(16.5, -1.8, 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 function drawProjectiles() {
+  const time = performance.now();
+
   for (const projectile of game.projectiles) {
-    ctx.fillStyle = "#ff8b18"; ctx.shadowColor = "#ff5a00"; ctx.shadowBlur = 12;
-    ctx.fillRect(projectile.x, projectile.y, projectile.w, projectile.h); ctx.shadowBlur = 0;
+    drawRocketSmoke(projectile, time);
+    drawCartoonRocket(projectile, time);
   }
 }
 
