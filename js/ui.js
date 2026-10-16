@@ -35,7 +35,9 @@ function drawHud() {
   }
   ctx.fillText(`SCORE: ${game.score}`, 34, 91);
   ctx.fillText(`SNELHEID ${game.speedIndex + 1}: ${SPEED_NAMES[game.speedIndex]}`, width - 232, 44);
-  ctx.font = "14px Arial"; ctx.fillText("← langzamer  → sneller  F schieten", width - 232, 62);
+  ctx.font = "14px Arial"; 
+  ctx.fillText("← → snelheid", width - 232, 58);
+  ctx.fillText("F = raket", width - 232, 78);
   ctx.fillStyle = "rgba(255,255,255,.25)"; ctx.fillRect(width - 232, 72, 195, 12);
   ctx.fillStyle = "#ffd23f"; ctx.fillRect(width - 232, 72, 195 * progress, 12);
 }
