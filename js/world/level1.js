@@ -7,6 +7,172 @@ function drawCloud(x, y, scale = 1, alpha = 0.9) {
   ctx.restore();
 }
 
+function drawEpicMountain(x, groundY, scale = 1, hasLava = false) {
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "#4f6265";
+  ctx.beginPath();
+  ctx.moveTo(-245, 0);
+  ctx.lineTo(0, -390);
+  ctx.lineTo(260, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#687b7d";
+  ctx.beginPath();
+  ctx.moveTo(-245, 0);
+  ctx.lineTo(0, -390);
+  ctx.lineTo(-35, -170);
+  ctx.lineTo(-105, -50);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#edfaff";
+  ctx.beginPath();
+  ctx.moveTo(0, -390);
+  ctx.lineTo(72, -278);
+  ctx.lineTo(24, -302);
+  ctx.lineTo(-3, -264);
+  ctx.lineTo(-48, -298);
+  ctx.lineTo(-91, -270);
+  ctx.closePath();
+  ctx.fill();
+
+  if (hasLava) {
+    ctx.strokeStyle = "#ff4b1f";
+    ctx.lineWidth = 14;
+    ctx.shadowColor = "#ff9d21";
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(5, -377);
+    ctx.lineTo(32, -294);
+    ctx.lineTo(12, -218);
+    ctx.lineTo(49, -126);
+    ctx.lineTo(58, -28);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
+
+function drawFloatingBlockIsland(x, y, scale = 1, variant = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "#68c84e";
+  ctx.fillRect(-110, -15, 220, 30);
+  ctx.strokeStyle = "#348936";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-110, -15, 220, 30);
+
+  ctx.fillStyle = variant % 2 ? "#875330" : "#79502f";
+  ctx.beginPath();
+  ctx.moveTo(-100, 15);
+  ctx.lineTo(0, 120);
+  ctx.lineTo(100, 15);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(57,31,15,.32)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-52, 20);
+  ctx.lineTo(0, 100);
+  ctx.lineTo(52, 20);
+  ctx.stroke();
+
+  drawBlockTree(-20, -15, 0.58, variant);
+  drawOreBlock(35, -1, variant % 2 ? "#ffd23e" : "#42e8f2");
+  ctx.restore();
+}
+
+function drawBlockCastle(x, groundY, scale = 1) {
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "#77838a";
+  ctx.fillRect(-65, -170, 130, 170);
+  ctx.fillRect(-118, -230, 53, 230);
+  ctx.fillRect(65, -230, 53, 230);
+
+  ctx.fillStyle = "#919da3";
+  for (const towerX of [-118, 65]) {
+    ctx.fillRect(towerX, -252, 18, 25);
+    ctx.fillRect(towerX + 35, -252, 18, 25);
+  }
+  ctx.fillRect(-65, -194, 25, 25);
+  ctx.fillRect(-12, -194, 25, 25);
+  ctx.fillRect(40, -194, 25, 25);
+
+  ctx.fillStyle = "#26323a";
+  ctx.fillRect(-20, -78, 40, 78);
+  ctx.fillRect(-100, -176, 18, 35);
+  ctx.fillRect(82, -176, 18, 35);
+
+  ctx.fillStyle = "#42d8ef";
+  ctx.fillRect(-95, -169, 8, 21);
+  ctx.fillRect(87, -169, 8, 21);
+  ctx.restore();
+}
+
+function drawBlockVillage(x, groundY, scale = 1) {
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.scale(scale, scale);
+
+  for (let house = 0; house < 3; house++) {
+    const hx = house * 105;
+    ctx.fillStyle = house % 2 ? "#b78348" : "#9b6b3e";
+    ctx.fillRect(hx, -70, 86, 70);
+    ctx.fillStyle = "#6e3c24";
+    ctx.beginPath();
+    ctx.moveTo(hx - 10, -70);
+    ctx.lineTo(hx + 43, -118);
+    ctx.lineTo(hx + 96, -70);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#2c3b43";
+    ctx.fillRect(hx + 34, -35, 19, 35);
+    ctx.fillStyle = "#ffd45a";
+    ctx.fillRect(hx + 9, -54, 17, 17);
+    ctx.fillRect(hx + 60, -54, 17, 17);
+  }
+  ctx.restore();
+}
+
+function drawBlockSheep(x, groundY, scale = 1) {
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#f5f5f1";
+  ctx.fillRect(-25, -36, 52, 31);
+  ctx.fillStyle = "#383838";
+  ctx.fillRect(20, -31, 22, 22);
+  ctx.fillRect(-18, -5, 7, 17);
+  ctx.fillRect(13, -5, 7, 17);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(25, -27, 5, 5);
+  ctx.fillStyle = "#111";
+  ctx.fillRect(27, -26, 2, 2);
+  ctx.restore();
+}
+
+function drawBlockBird(x, y, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = "#263b49";
+  ctx.fillRect(-3, -3, 6, 6);
+  ctx.fillRect(-21, -8, 18, 5);
+  ctx.fillRect(3, -8, 18, 5);
+  ctx.restore();
+}
+
 function drawBlockHill(cx, baseY, width, height, seed = 0) {
   const block = 32;
   for (let x = cx - width / 2; x < cx + width / 2; x += block) {
@@ -71,22 +237,75 @@ function drawBlockDetails(width) {
 }
 
 function drawGrasslandWorld() {
-  const width=window.innerWidth,height=window.innerHeight,ground=baseGroundY();
-  const sky=ctx.createLinearGradient(0,0,0,ground);sky.addColorStop(0,"#38b8eb");sky.addColorStop(1,"#d8f6ff");ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
-  ctx.fillStyle="#ffd74a";ctx.fillRect(width-152,60,92,92);ctx.fillStyle="rgba(255,255,255,.18)";ctx.fillRect(width-143,69,24,24);
-  drawCloud(130-(game.distance*.025)%(width+350),120,1,.9);drawCloud(720-(game.distance*.018)%(width+520),190,.78,.72);
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const ground = baseGroundY();
 
-  const far=(game.distance*.055)%720;
-  for(let x=-620-far;x<width+720;x+=720){drawBlockHill(x+270,ground+12,500,250,1);drawBlockHill(x+660,ground+18,330,150,3);}
+  const sky = ctx.createLinearGradient(0, 0, 0, ground);
+  sky.addColorStop(0, "#249fd8");
+  sky.addColorStop(0.62, "#8cddf5");
+  sky.addColorStop(1, "#d8f6ff");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
 
-  const waterShift=(game.distance*.11)%1400;
-  for(let x=-1050-waterShift;x<width+1400;x+=1400){
-    ctx.fillStyle="#63c44b";ctx.fillRect(x+760,ground-345,180,28);ctx.fillStyle="#81502d";ctx.beginPath();ctx.moveTo(x+770,ground-317);ctx.lineTo(x+850,ground-235);ctx.lineTo(x+930,ground-317);ctx.fill();drawBlockWaterfall(x+833,ground-317,154,36);
+  ctx.fillStyle = "rgba(255,215,74,.28)";
+  ctx.fillRect(width - 169, 43, 126, 126);
+  ctx.fillStyle = "#ffd74a";
+  ctx.fillRect(width - 152, 60, 92, 92);
+  ctx.fillStyle = "rgba(255,255,255,.22)";
+  ctx.fillRect(width - 143, 69, 24, 24);
+
+  drawCloud(130 - (game.distance * 0.025) % (width + 350), 120, 1, 0.9);
+  drawCloud(720 - (game.distance * 0.018) % (width + 520), 190, 0.78, 0.72);
+
+  const mountainShift = (game.distance * 0.025) % 1250;
+  for (let x = -1250 - mountainShift, index = 0; x < width + 1250; x += 1250, index++) {
+    drawEpicMountain(x + 400, ground - 25, 1.12, index % 3 === 1);
+    drawEpicMountain(x + 930, ground - 8, 0.72, false);
   }
 
-  const trees=(game.distance*.31)%720;
-  for(let x=-260-trees,g=0;x<width+720;x+=720,g++){drawBlockTree(x+125,ground-8,1.08,g);drawBlockTree(x+380,ground-8,.78,g+1);drawBlockCave(x+590,ground-6,.78);drawOreBlock(x+675,ground-55,g%2?"#ffd23e":"#42e8f2");}
+  const villageShift = (game.distance * 0.045) % 1750;
+  for (let x = -1500 - villageShift; x < width + 1750; x += 1750) {
+    drawBlockVillage(x + 780, ground - 38, 0.56);
+  }
 
-  drawTerrain("#81502e","#62c84c");
+  const islandShift = (game.distance * 0.06) % 1800;
+  for (let x = -1800 - islandShift, index = 0; x < width + 1800; x += 1800, index++) {
+    drawFloatingBlockIsland(x + 650, 200, 0.82, index);
+    drawBlockWaterfall(x + 632, 213, 138, 34);
+  }
+
+  const hillShift = (game.distance * 0.055) % 720;
+  for (let x = -620 - hillShift; x < width + 720; x += 720) {
+    drawBlockHill(x + 270, ground + 12, 500, 250, 1);
+    drawBlockHill(x + 660, ground + 18, 330, 150, 3);
+  }
+
+  const castleShift = (game.distance * 0.12) % 2200;
+  for (let x = -1800 - castleShift; x < width + 2200; x += 2200) {
+    drawBlockCastle(x + 1250, ground - 22, 0.78);
+  }
+
+  const trees = (game.distance * 0.31) % 720;
+  for (let x = -260 - trees, group = 0; x < width + 720; x += 720, group++) {
+    drawBlockTree(x + 125, ground - 8, 1.08, group);
+    drawBlockTree(x + 380, ground - 8, 0.78, group + 1);
+    drawBlockCave(x + 590, ground - 6, 0.78);
+    drawOreBlock(x + 675, ground - 55, group % 2 ? "#ffd23e" : "#42e8f2");
+  }
+
+  drawTerrain("#81502e", "#62c84c");
   drawBlockDetails(width);
+
+  const animalShift = (game.distance * 0.59) % 540;
+  for (let x = -540 - animalShift, index = 0; x < width + 540; x += 540, index++) {
+    const sheepY = terrainY(screenToWorldX(x + 180));
+    if (index % 2 === 0) drawBlockSheep(x + 180, sheepY - 2, 0.75);
+  }
+
+  const birdTime = performance.now() * 0.035;
+  for (let index = 0; index < 7; index++) {
+    const birdX = width - ((game.distance * 0.1 + birdTime + index * 220) % (width + 300));
+    drawBlockBird(birdX, 110 + (index % 3) * 52, 0.85 + (index % 2) * 0.3);
+  }
 }
