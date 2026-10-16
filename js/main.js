@@ -10,6 +10,9 @@ truckImage.src = "Monstertruck.png";
 
 let gameStarted = false;
 let gameOver = false;
+let levelComplete = false;
+let gameComplete = false;
+let currentLevelIndex = 0;
 let lastTime = 0;
 let worldOffset = 0;
 let distance = 0;
@@ -34,30 +37,58 @@ const speedLevels = [
     { name: "SUPERSNEL", speed: 590 }
 ];
 
-const levelLength = 7600;
-const groundHeight = 108;
-
-const truck = {
-    x: 105,
-    y: 0,
-    width: 276,
-    height: 170,
-    velocityY: 0,
-    speed: speedLevels[speedLevel - 1].speed,
-    jumpPower: 930,
-    gravity: 1700,
-    onGround: true
-};
-
-const enemies = [
-    { x: 1350, type: "crawler", width: 70, height: 55 },
-    { x: 2450, type: "spikes", width: 72, height: 38 },
-    { x: 3650, type: "crawler", width: 72, height: 57 },
-    { x: 4850, type: "spikes", width: 80, height: 40 },
-    { x: 6100, type: "crawler", width: 76, height: 60 }
+const LEVELS = [
+    {
+        number: 1,
+        name: "BLOKKENWEIDE",
+        length: 7600,
+        startSpeedLevel: 1,
+        checkpoints: [0, 2700, 5200],
+        enemies: [
+            { x: 1350, type: "crawler", width: 70, height: 55 },
+            { x: 2450, type: "spikes", width: 72, height: 38 },
+            { x: 3650, type: "crawler", width: 72, height: 57 },
+            { x: 4850, type: "spikes", width: 80, height: 40 },
+            { x: 6100, type: "crawler", width: 76, height: 60 }
+        ]
+    },
+    {
+        number: 2,
+        name: "WOESTIJNROUTE",
+        length: 8200,
+        startSpeedLevel: 2,
+        checkpoints: [0, 2900, 5700],
+        enemies: [
+            { x: 1200, type: "crawler", width: 72, height: 57 },
+            { x: 2200, type: "spikes", width: 76, height: 40 },
+            { x: 3350, type: "crawler", width: 76, height: 60 },
+            { x: 4450, type: "spikes", width: 84, height: 42 },
+            { x: 5600, type: "crawler", width: 80, height: 63 },
+            { x: 6900, type: "spikes", width: 92, height: 44 }
+        ]
+    },
+    {
+        number: 3,
+        name: "IJSBERGEN",
+        length: 8800,
+        startSpeedLevel: 2,
+        checkpoints: [0, 3100, 6100],
+        enemies: [
+            { x: 1150, type: "crawler", width: 74, height: 58 },
+            { x: 2050, type: "spikes", width: 78, height: 40 },
+            { x: 3100, type: "crawler", width: 80, height: 62 },
+            { x: 4250, type: "spikes", width: 88, height: 43 },
+            { x: 5350, type: "crawler", width: 84, height: 66 },
+            { x: 6550, type: "spikes", width: 96, height: 46 },
+            { x: 7750, type: "crawler", width: 88, height: 68 }
+        ]
+    }
 ];
 
-const checkpoints = [0, 2700, 5200];
+let levelLength = LEVELS[0].length;
+let enemies = LEVELS[0].enemies;
+let checkpoints = LEVELS[0].checkpoints;
+
 
 function getGroundY() {
     return window.innerHeight - groundHeight;
@@ -99,17 +130,38 @@ function resizeCanvas() {
     }
 }
 
+function applyCurrentLevel() {
+    const level = LEVELS[currentLevelIndex];
+    levelLength = level.length;
+    enemies = level.enemies;
+    checkpoints = level.checkpoints;
+    checkpoint = 0;
+    speedLevel = level.startSpeedLevel;
+    truck.speed = speedLevels[speedLevel - 1].speed;
+    destroyedEnemies.clear();
+    explosions.length = 0;
+    dustParticles.length = 0;
+    projectiles.length = 0;
+}
+
+function startCurrentLevel() {
+    levelComplete = false;
+    gameOver = false;
+    applyCurrentLevel();
+    resetRun(false);
+    showMessage(`LEVEL ${LEVELS[currentLevelIndex].number}: ${LEVELS[currentLevelIndex].name}`, 1.8);
+}
+
 function resetRun(fullReset = false) {
     if (fullReset) {
+        currentLevelIndex = 0;
         lives = 3;
         score = 0;
         checkpoint = 0;
         gameOver = false;
-        speedLevel = 1;
-        truck.speed = speedLevels[speedLevel - 1].speed;
-        destroyedEnemies.clear();
-        explosions.length = 0;
-        dustParticles.length = 0;
+        levelComplete = false;
+        gameComplete = false;
+        applyCurrentLevel();
     }
 
     distance = checkpoints[checkpoint];
@@ -125,11 +177,11 @@ function startGame() {
     gameStarted = true;
     menu.hidden = true;
     resetRun(true);
-    showMessage("GAS EROP!", 1.1);
+    showMessage(`LEVEL 1: ${LEVELS[0].name}`, 1.8);
 }
 
 function jump() {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver || levelComplete || gameComplete) return;
     if (truck.onGround) {
         truck.velocityY = -truck.jumpPower;
         truck.onGround = false;
@@ -137,14 +189,14 @@ function jump() {
 }
 
 function changeSpeed(direction) {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver || levelComplete || gameComplete) return;
     speedLevel = Math.max(1, Math.min(5, speedLevel + direction));
     truck.speed = speedLevels[speedLevel - 1].speed;
     showMessage(speedLevels[speedLevel - 1].name, 0.65);
 }
 
 function shoot() {
-    if (!gameStarted || gameOver || shotCooldown > 0) return;
+    if (!gameStarted || gameOver || levelComplete || gameComplete || shotCooldown > 0) return;
 
     projectiles.push({
         x: truck.x + truck.width - 22,
@@ -202,7 +254,7 @@ function getTruckHitbox() {
 }
 
 function update(delta) {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver || levelComplete || gameComplete) return;
 
     distance += truck.speed * delta;
     worldOffset = distance;
@@ -302,9 +354,14 @@ function update(delta) {
     }
 
     if (distance >= levelLength) {
-        gameOver = true;
-        score += 1000;
-        showMessage("LEVEL 1 GEHAALD!", 99);
+        score += 1000 * (currentLevelIndex + 1);
+        if (currentLevelIndex < LEVELS.length - 1) {
+            levelComplete = true;
+            showMessage(`LEVEL ${LEVELS[currentLevelIndex].number} GEHAALD!`, 99);
+        } else {
+            gameComplete = true;
+            showMessage("ALLE 3 LEVELS GEHAALD!", 99);
+        }
     }
 }
 
@@ -965,17 +1022,19 @@ function drawHud() {
     const progress = Math.min(distance / levelLength, 1);
 
     ctx.fillStyle = "rgba(8,55,92,0.9)";
-    ctx.fillRect(18, 18, 290, 82);
+    ctx.fillRect(18, 18, 370, 105);
     ctx.fillRect(w - 250, 18, 232, 82);
     ctx.strokeStyle = "white";
     ctx.lineWidth = 3;
-    ctx.strokeRect(18, 18, 290, 82);
+    ctx.strokeRect(18, 18, 370, 105);
     ctx.strokeRect(w - 250, 18, 232, 82);
 
     ctx.fillStyle = "white";
     ctx.font = "bold 19px Arial";
-    ctx.fillText(`LEVENS: ${"❤".repeat(lives)}`, 34, 49);
-    ctx.fillText(`SCORE: ${score}`, 34, 80);
+    ctx.fillText(`LEVEL ${LEVELS[currentLevelIndex].number}: ${LEVELS[currentLevelIndex].name}`, 34, 43);
+    ctx.font = "bold 17px Arial";
+    ctx.fillText(`LEVENS: ${"❤".repeat(lives)}`, 34, 66);
+    ctx.fillText(`SCORE: ${score}`, 34, 91);
     ctx.fillText(`SNELHEID ${speedLevel}: ${speedLevels[speedLevel - 1].name}`, w - 232, 44);
     ctx.font = "15px Arial";
     ctx.fillText("← langzamer   → sneller   F schieten", w - 232, 62);
@@ -987,7 +1046,7 @@ function drawHud() {
 }
 
 function drawOverlay() {
-    if (messageTime > 0 || gameOver) {
+    if (messageTime > 0 || gameOver || levelComplete || gameComplete) {
         ctx.fillStyle = "rgba(5,35,58,0.82)";
         ctx.fillRect(window.innerWidth / 2 - 250, window.innerHeight / 2 - 70, 500, 140);
         ctx.strokeStyle = "white";
@@ -999,17 +1058,34 @@ function drawOverlay() {
         ctx.fillText(message, window.innerWidth / 2, window.innerHeight / 2 - 3);
         if (gameOver) {
             ctx.font = "18px Arial";
-            ctx.fillText("Druk op Enter om opnieuw te beginnen", window.innerWidth / 2, window.innerHeight / 2 + 38);
+            ctx.fillText("Druk op Enter om opnieuw te beginnen bij level 1", window.innerWidth / 2, window.innerHeight / 2 + 38);
+        } else if (levelComplete) {
+            ctx.font = "18px Arial";
+            ctx.fillText("Druk op Enter voor het volgende level", window.innerWidth / 2, window.innerHeight / 2 + 38);
+        } else if (gameComplete) {
+            ctx.font = "18px Arial";
+            ctx.fillText("Druk op Enter om alle levels opnieuw te spelen", window.innerWidth / 2, window.innerHeight / 2 + 38);
         }
         ctx.textAlign = "start";
     }
 }
 
-function restartIfNeeded() {
-    if (!gameOver) return;
-    resetRun(true);
-    gameStarted = true;
-    showMessage("NIEUWE RACE!", 1.1);
+function continueOrRestart() {
+    if (levelComplete) {
+        currentLevelIndex += 1;
+        lives = 3;
+        startCurrentLevel();
+        return;
+    }
+
+    if (gameComplete || gameOver) {
+        currentLevelIndex = 0;
+        lives = 3;
+        score = 0;
+        gameComplete = false;
+        gameOver = false;
+        startCurrentLevel();
+    }
 }
 
 function gameLoop(time) {
@@ -1051,7 +1127,7 @@ window.addEventListener("keydown", event => {
         event.preventDefault();
         shoot();
     }
-    if (event.code === "Enter") restartIfNeeded();
+    if (event.code === "Enter") continueOrRestart();
 });
 canvas.addEventListener("pointerdown", jump);
 
